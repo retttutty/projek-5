@@ -1,6 +1,14 @@
 import time
 import random
 
+# Variabel global untuk tracking game
+gamen_stats = {
+    'level': 1,
+    'bayaran': 500000,
+    'musuh_dikalahkan': 0,
+    'spiderman_dipanggil': False
+}
+
 def tampilkan_intro():
     """Menampilkan intro game"""
     print("\n" + "="*60)
@@ -33,14 +41,20 @@ Keberuntungan ada di sisinya - refleksnya yang tajam adalah senjata utamanya.
 
 def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
     """Sistem pertempuran dengan penjahat"""
-    kesehatan_gwen = 100
-    kekuatan_gwen = 85
+    global gamen_stats
+    
+    kesehatan_gwen = 100 + (gamen_stats['level'] * 10)  # HP meningkat per level
+    kekuatan_gwen = 85 + (gamen_stats['level'] * 5)    # Damage meningkat per level
     ronde = 1
+    spiderman_aktif = False
     
     print("\n" + "🔥" * 30)
     print(f"⚔️  PERTEMPURAN: Melawan {nama_musuh}!".center(60))
+    print(f"📊 LEVEL: {gamen_stats['level']} | HP Gwen: {kesehatan_gwen} | Damage: {kekuatan_gwen}".center(60))
     print("🔥" * 30 + "\n")
     time.sleep(1)
+    
+    hp_awal_gwen = kesehatan_gwen
     
     while kesehatan_gwen > 0 and kesehatan_musuh > 0:
         print(f"\n--- RONDE {ronde} ---")
@@ -49,9 +63,14 @@ def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
         print("Pilihan Serangan:")
         print("1. PUKULAN CEPAT (70% berhasil, 15-20 damage)")
         print("2. TENDANGAN AKROBATIK (60% berhasil, 25-35 damage)")
-        print("3. MENGELAK & KONTRA (50% berhasil, 30-45 damage)\n")
+        print("3. MENGELAK & KONTRA (50% berhasil, 30-45 damage)")
         
-        pilihan = input("Pilih taktik (1/2/3): ").strip()
+        # Tampilkan opsi memanggil Spiderman jika HP kurang dari 20
+        if kesehatan_gwen < 20 and not spiderman_aktif and not gamen_stats['spiderman_dipanggil']:
+            print("4. 🕷️ PANGGIL SPIDERMAN (menurunkan bayaran 50%)")
+        
+        print()
+        pilihan = input("Pilih taktik (1/2/3/4): ").strip()
         
         # Serangan Gwen
         serangan_berhasil = False
@@ -71,7 +90,7 @@ def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
                 serangan_berhasil = True
                 print(f"✅ Tendangan akrobatik spektakuler! Damage: {damage}")
             else:
-                print("❌ {nama_musuh} mengelak dari tendangan!")
+                print(f"❌ {nama_musuh} mengelak dari tendangan!")
         
         elif pilihan == "3":
             if random.random() < 0.5:
@@ -81,6 +100,34 @@ def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
             else:
                 print("❌ Mengelak gagal, Gwen terkena pukulan!")
                 kesehatan_gwen -= 10
+        
+        elif pilihan == "4":
+            # Memanggil Spiderman
+            if kesehatan_gwen < 20 and not spiderman_aktif and not gamen_stats['spiderman_dipanggil']:
+                print("\n🕷️ SPIDERMAN TIBA!")
+                print("   'Hei Gwen, butuh bantuan?'")
+                print("   Spiderman memasuki pertempuran dengan gerakan akrobatiknya!\n")
+                time.sleep(1)
+                
+                # Spiderman membantu
+                damage_spiderman = random.randint(40, 60)
+                kesehatan_musuh -= damage_spiderman
+                spiderman_aktif = True
+                gamen_stats['spiderman_dipanggil'] = True
+                gamen_stats['bayaran'] = int(gamen_stats['bayaran'] * 0.5)  # Bayaran dikurangi 50%
+                
+                print(f"⚡ Spiderman menyerang! Damage: {damage_spiderman}")
+                print(f"⚠️  PERHATIAN: Bayaran Gwen berkurang 50%! Bayaran baru: ${gamen_stats['bayaran']:,}\n")
+                time.sleep(1)
+                
+                # Spiderman memberi efek perlindungan
+                print("🛡️ Spiderman memberikan perlindungan tambahan!\n")
+                kesehatan_gwen = min(hp_awal_gwen, kesehatan_gwen + 20)
+                ronde += 1
+                continue
+            else:
+                print("❌ Tidak bisa memanggil Spiderman! (HP >= 20 atau sudah dipanggil)")
+                continue
         
         else:
             print("❌ Pilihan tidak valid!")
@@ -93,8 +140,16 @@ def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
         
         # Serangan Musuh
         if kesehatan_musuh > 0:
-            damage_musuh = random.randint(kekuatan_musuh - 10, kekuatan_musuh)
-            print(f"\n⚡ {nama_musuh} menyerang balik! Damage: {damage_musuh}")
+            damage_musuh = random.randint(max(1, kekuatan_musuh - 10), kekuatan_musuh)
+            
+            # Jika Spiderman aktif, ada kesempatan mengurangi damage
+            if spiderman_aktif and random.random() < 0.3:
+                damage_musuh = int(damage_musuh * 0.5)
+                print(f"\n🕷️ Spiderman memblokir sebagian serangan!")
+                print(f"⚡ {nama_musuh} menyerang balik! Damage: {damage_musuh} (berkurang karena bantuan)")
+            else:
+                print(f"\n⚡ {nama_musuh} menyerang balik! Damage: {damage_musuh}")
+            
             kesehatan_gwen -= damage_musuh
             time.sleep(1)
         
@@ -104,6 +159,22 @@ def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
     if kesehatan_gwen > 0:
         print("🏆 KEMENANGAN! Gwen mengalahkan musuh!".center(60))
         print("="*60)
+        
+        # Level Up System
+        gamen_stats['musuh_dikalahkan'] += 1
+        
+        # Level up setiap 2 musuh yang dikalahkan
+        if gamen_stats['musuh_dikalahkan'] % 2 == 0:
+            gamen_stats['level'] += 1
+            print(f"\n⭐ LEVEL UP! Gwen naik ke LEVEL {gamen_stats['level']}!")
+            print(f"   HP maksimal: +10")
+            print(f"   Damage: +5")
+            print(f"   Akurasi: +5%\n")
+            time.sleep(1)
+        
+        print(f"📊 Musuh dikalahkan: {gamen_stats['musuh_dikalahkan']}")
+        print(f"📊 Level saat ini: {gamen_stats['level']}\n")
+        
         return True
     else:
         print("💀 KEKALAHAN! Gwen tewas dalam pertempuran!".center(60))
@@ -212,19 +283,34 @@ Gwen sampai di persimpangan dalam dungeon. Dua jalur terbuka di hadapannya:
 
 def game_selesai(kemenangan):
     """Menampilkan ending game"""
+    global gamen_stats
     print("\n" + "="*60)
     
     if kemenangan:
         print("🏆 SELAMAT! ANDA MENANG! 🏆".center(60))
         print("="*60)
-        print("""
+        print(f"""
 Gwen berhasil mengalahkan penjahat dan mendapatkan kunci untuk keluar!
 Dia kemudian berhasil melarikan diri dari dungeon bawah tanah.
 
-Kembali ke permukaan New York City, Gwen menyelesaikan misinya
-dan mendapatkan bayaran sebesar $500.000!
+Kembali ke permukaan New York City, Gwen menyelesaikan misinya.
 
-Setidaknya, hari ini dia hidup untuk membunuh lagi...
+═══════════════════════════════════════════════════════════════════
+📊 STATISTIK PERTEMPURAN
+═══════════════════════════════════════════════════════════════════
+⭐ Level Akhir          : {gamen_stats['level']}
+🗡️  Musuh Dikalahkan    : {gamen_stats['musuh_dikalahkan']}
+💰 Bayaran             : ${gamen_stats['bayaran']:,}
+""")
+        
+        if gamen_stats['spiderman_dipanggil']:
+            print("🕷️ Spiderman dipanggil    : YA (Bayaran dikurangi 50%)")
+        else:
+            print("🕷️ Spiderman dipanggil    : TIDAK")
+        
+        print(f"""
+═══════════════════════════════════════════════════════════════════
+Setidaknya, hari ini Gwen hidup untuk membunuh lagi...
 
         ╔════════════════════════════════════════════════════════════╗
         ║        TERIMA KASIH TELAH BERMAIN DUNGEON NYC!             ║
@@ -233,10 +319,18 @@ Setidaknya, hari ini dia hidup untuk membunuh lagi...
     else:
         print("💀 GAME OVER! ANDA KALAH! 💀".center(60))
         print("="*60)
-        print("""
+        print(f"""
 Gwen tidak berhasil mengalahkan penjahat. Dia tewas dalam pertempuran,
 dan tubuhnya hilang di kegelapan dungeon bawah tanah.
 
+═══════════════════════════════════════════════════════════════════
+📊 STATISTIK PERTEMPURAN
+═══════════════════════════════════════════════════════════════════
+⭐ Level Tertinggi      : {gamen_stats['level']}
+🗡️  Musuh Dikalahkan    : {gamen_stats['musuh_dikalahkan']}
+💰 Bayaran yang diterima: $0 (MISI GAGAL)
+
+═══════════════════════════════════════════════════════════════════
 Misi gagal.
 Bayaran tidak akan diterima.
 
@@ -250,6 +344,16 @@ Petualangan Gwen berakhir di sini...
 
 def game_utama():
     """Fungsi utama game"""
+    global gamen_stats
+    
+    # Reset stats untuk permainan baru
+    gamen_stats = {
+        'level': 1,
+        'bayaran': 500000,
+        'musuh_dikalahkan': 0,
+        'spiderman_dipanggil': False
+    }
+    
     tampilkan_intro()
     
     nama = input("🎭 Masukkan nama GWEN Anda (atau tekan Enter untuk nama default): ").strip()
