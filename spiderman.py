@@ -245,20 +245,37 @@ def sistem_pertempuran(nama_musuh, kesehatan_musuh, kekuatan_musuh):
         print("🏆 KEMENANGAN! Gwen mengalahkan musuh!".center(60))
         print("="*60)
         
-        # Level Up System
+        # Level Up System - SETIAP musuh dikalahkan
         gamen_stats['musuh_dikalahkan'] += 1
+        gamen_stats['level'] += 1
         
-        # Level up setiap 2 musuh yang dikalahkan
-        if gamen_stats['musuh_dikalahkan'] % 2 == 0:
-            gamen_stats['level'] += 1
-            print(f"\n⭐ LEVEL UP! Gwen naik ke LEVEL {gamen_stats['level']}!")
-            print(f"   HP maksimal: +10")
-            print(f"   Damage: +5")
-            print(f"   Akurasi: +5%\n")
-            time.sleep(1)
+        # Bonus stats yang semakin powerful setiap level
+        level_current = gamen_stats['level']
+        bonus_hp = 15 + (level_current * 5)  # Semakin tinggi level, semakin besar bonus
+        bonus_damage = 10 + (level_current * 3)
+        
+        print(f"\n⭐⭐⭐ LEVEL UP! Gwen naik ke LEVEL {gamen_stats['level']}! ⭐⭐⭐")
+        print(f"\n💪 POWER-UP GWEN:")
+        print(f"   ⚡ HP maksimal: +{bonus_hp}")
+        print(f"   🔥 Damage: +{bonus_damage}")
+        print(f"   🎯 Akurasi: +{5 + level_current}%")
+        
+        # Efek dramatic untuk level tinggi
+        if level_current >= 3:
+            print(f"\n   ✨ EFEK EVOLUSI! Gwen semakin kuat dan berbahaya!")
+        
+        if level_current >= 5:
+            print(f"   🌟 GWEN MENJADI MELEBIHI MANUSIA! Kecepatan & Refleks Double!")
+        
+        if level_current >= 7:
+            print(f"   👹 FORM BERUBAH! Gwen mengeluarkan passive skill tambahan!")
+            print(f"   🔴 BERSERK MODE - Setiap serangan +50% Damage!")
+        
+        print()
+        time.sleep(1)
         
         print(f"📊 Musuh dikalahkan: {gamen_stats['musuh_dikalahkan']}")
-        print(f"📊 Level saat ini: {gamen_stats['level']}\n")
+        print(f"⭐ Level saat ini: {gamen_stats['level']}\n")
         
         return True
     else:
